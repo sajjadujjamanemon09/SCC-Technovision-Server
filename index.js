@@ -6,14 +6,16 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(cors({
-  credentials:true,
-  origin:[
-    'https://scc-technovision-inc.web.app',
-    'https://scc-technovision-inc.firebaseapp.com',
-    'http://localhost:5173'
-  ]
-}));
+app.use(
+  cors({
+    credentials: true,
+    origin: [
+      "https://scc-technovision-inc.web.app",
+      "https://scc-technovision-inc.firebaseapp.com",
+      "http://localhost:5173",
+    ],
+  })
+);
 app.use(express.json());
 
 console.log(process.env.DB_PASSWORD);
@@ -56,22 +58,43 @@ async function run() {
     });
 
     // // update task
-    app.put("/toDoTasks/:_id", async (req, res) => {
+    app.patch("/task/updateNow/:_id", async (req, res) => {
       const id = req.params._id;
       const filter = { _id: new ObjectId(id) };
-      const updated = req.body;
+      const data = req.body;
       const update = {
         $set: {
-          name: updated.name,
-          brand: updated.brand,
-          type: updated.type,
-          price: updated.price,
-          description: updated.description,
-          image: updated.image,
-          rating: updated.rating,
+          title: data.title,
+          status: data.status,
+          priority: data.priority,
+          date: data.date,
+          description: data.description,
         },
       };
       const result = await toDoTaskCollection.updateOne(filter, update);
+      res.send(result);
+    });
+
+    app.get("/task/update/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: new ObjectId(id) }
+      const result = await toDoTaskCollection.findOne(query)
+      res.send(result)
+    })
+
+
+    app.patch("/tasks", async (req, res) => {
+      const { id, status, order } = req.body;
+      const filter = { _id: new ObjectId(id) };
+      console.log(id);
+      const updateDoc = {
+        $set: {
+          status: status,
+          order: order,
+        },
+      };
+      const result = await toDoTaskCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
 
